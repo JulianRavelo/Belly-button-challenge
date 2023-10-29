@@ -2,86 +2,179 @@
 const url = "https://2u-data-curriculum-team.s3.amazonaws.com/dataviz-classroom/v1.1/14-Interactive-Web-Visualizations/02-Homework/samples.json";
 
 // Fetch the JSON data and console log it
-d3.json(url).then(function getAPI(data) {
-    console.log(data);
-});
+d3.json(url).then(function(data) {
+  console.log(data.metadata[0].ethnicity);
+  let names = [];
+  let sample_values = [];
+  let labels = [];
+  let otu_ids = [];
 
-getAPI(url);
+  for (let i = 0; i < data.names.length; i++){
+    names.push(data.names[i]);
+    sample_values.push(data.samples[i].sample_values);
+    otu_ids.push(data.samples[i].otu_ids);
+    labels.push(data.samples[i].otu_labels); 
+  };
 
+  // Reference for input element
+  let selector = d3.select("#selDataset");
 
-// console.log(data.samples[0].sample_values[0]);
-//     let names = [];
-//     let sample_values = [];
-//     let otu_ids = [];
-//     for (let i = 0; i < data.names.length; i++){
-//         names.push(data.names[i]);
-//         sample_values.push(data.samples[i].sample_values);
-//         otu_ids.push(data.samples[i].otu_ids);
-//     }
-//     // // Sort the data by sample_values descending
-//     // slicedData = data.samples.slice(0,10);
-//     // console.log(slicedData);
+  // Adding list of IDs to list on HTML
+  names.forEach((sample) => {
+    selector.append("option").text(sample).property("value", sample);
+  });
 
-//     // // Reverse the array to accommodate Plotly's defaults
-//     // reversedData = slicedData.reverse();
-//     // console.log(reversedData);
-//     console.log(otu_ids);
+  // Setting changing event
+  selector.on("change", function(event) {
+    let newText = event.target.value;
+    console.log(newText);
+  
+    // Getting key values function
+    function getKeyByValue(object, value) { 
+      return Object.keys(object).find(key => 
+        object[key] === newText); 
+    };
 
-//     let trace1 = {
-//         x: names,
-//         y: sample_values,
-//         type: "bar"
-//     }; 
-//     let dataArray = [trace1];
-    
-//     Plotly.newPlot("plot", dataArray);
+    let ans = getKeyByValue(names, '940'); 
+    console.log(ans);
 
-    // let trace1 = {
-    //     x: data.map(row => row.samples.sample_values),
-    //     y: data.map(row => row.samples.otu_ids),
-    //     type: "bar"
-    // };
+    //Function for Bubble chart
+    function bubbleChart() {
+      let trace2 = [{
+        type: "scatter",
+        mode: 'markers',
+        x: otu_ids[ans],
+        y: sample_values[ans],
+        marker: {
+          size: sample_values[ans],
+          color: otu_ids[ans]
+        },
+        text: labels[ans]
+      }];
 
-    // let traceData = [trace1];
+      Plotly.newPlot("bubble", trace2);
+    };
+    bubbleChart();
 
-    // Plotly.newPlot("plot", traceData);
+    //Function for Bubble chart
+    function barChart() {
+      // Organising data for bar chart
+      slicedSample = sample_values[ans].slice(0, 10);
+      slicedOTU = otu_ids[ans].slice(0, 10);
+      let reversedSample = slicedSample.reverse();
+      let reversedOTU_ = slicedOTU.reverse();
+      let reversedOTU = [];
+
+      for (let i=0; i< reversedOTU_.length; i++){
+        reversedOTU.push("OTU " + reversedOTU_[i])
+      };
+
+      let trace1 = [{
+        x: reversedSample,
+        y: reversedOTU,
+        hovertemplate: labels[ans],
+        type: "bar",
+        orientation: "h"
+      }];
+
+      let layout = {
+        xaxis: {
+          range: [0, Math.max(reversedOTU)],
+        }
+      };
+
+      Plotly.newPlot("bar", trace1, layout);
+    };
+    barChart();
+
+    function clearData() {
+      const myElement = d3.select("#sample-metadata");
+      myElement.text('');
+    };
+    clearData();
+
+    // Function for Demographic information
+    function demographic() {
+      let metadata = [];
+
+      metadata = [`id: ${names[ans]}`,
+      `ethnicity: ${data.metadata[ans].ethnicity}`,
+      `gender: ${data.metadata[ans].gender}`,
+      `age: ${data.metadata[ans].age}`,
+      `location: ${data.metadata[ans].location}`,
+      `bbtype: ${data.metadata[ans].bbtype}`,
+      `wfreq: ${data.metadata[ans].wfreq}`];
       
+      for (let i=0; i< metadata.length; i++){
+        output = d3.select("#sample-metadata")
+        .append("div")
+        .text(metadata[i])
+      };
+    };
+    demographic();
 
+  });
 
-// let names = [];
-// for (let i = 0; i < data.length; i++){
-//     row = data[i];
-//     names.push(row.names[i]);
-// }
+  // Setting key values function for initial graph
+  // Bubble chart
+  let ans = 0; 
+  function init() {
+    let trace2 = [{
+      type: "scatter",
+      mode: 'markers',
+      x: otu_ids[ans],
+      y: sample_values[ans],
+      marker: {
+        size: sample_values[ans],
+        color: otu_ids[ans]
+      },
+      text: labels[ans]
+    }];
 
-// Sort the data by sample_values descending
-//let sorted_sample_values = sample_data.samples.sort((a, b) => b.sample_values - a.sample_values);
+    Plotly.newPlot("bubble", trace2);
 
-// // Slice the first 10 objects for plotting
-// slicedData = sorted_sample_values.slice(0, 10);
+    // Bar chart
+    slicedSample = sample_values[ans].slice(0, 10);
+    slicedOTU = otu_ids[ans].slice(0, 10);
+    let reversedSample = slicedSample.reverse();
+    let reversedOTU_ = slicedOTU.reverse();
+    let reversedOTU = [];
 
-// // Reverse the array to accommodate Plotly's defaults
-// reversedData = slicedData.reverse();
+    for (let i=0; i< reversedOTU_.length; i++){
+      reversedOTU.push("OTU " + reversedOTU_[i])
+    };
 
-// // Trace1 for the data
-// let trace1 = {
-//   x: reversedData.map(object => object.sample_values),
-//   y: reversedData.map(object => object.otu_ids),
-//   text: reversedData.map(object => object.otu_labels),
-//   type: "bar",
-//   orientation: "h"
-// };
+    let trace1 = [{
+      x: reversedSample,
+      y: reversedOTU,
+      hovertemplate: labels[ans],
+      type: "bar",
+      orientation: "h"
+    }];
 
-// // Data array
-// // `data` has already been defined, so we must choose a new name here:
-// let traceData = [trace1];
+    let layout = {
+      xaxis: {
+        range: [0, Math.max(reversedOTU)],
+      }
+    };
 
-// // Render the plot to the div tag with id "plot"
-// Plotly.newPlot("plot", traceData);
+    Plotly.newPlot("bar", trace1, layout);
 
+    // Demographic information
+    let metadata = [`id: ${names[ans]}`,
+    `ethnicity: ${data.metadata[ans].ethnicity}`,
+    `gender: ${data.metadata[ans].gender}`,
+    `age: ${data.metadata[ans].age}`,
+    `location: ${data.metadata[ans].location}`,
+    `bbtype: ${data.metadata[ans].bbtype}`,
+    `wfreq: ${data.metadata[ans].wfreq}`];
 
-//Use sample_values as the values for the bar chart.
+    for (let i=0; i< metadata.length; i++){
+      output = d3.select("#sample-metadata")
+      .append("div")
+      .text(metadata[i])
+    }
+  };
+  init();
 
-//Use otu_ids as the labels for the bar chart.
-
-//Use otu_labels as the hovertext for the chart.
+});
