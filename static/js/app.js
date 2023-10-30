@@ -49,14 +49,25 @@ d3.json(url).then(function(data) {
           size: sample_values[ans],
           color: otu_ids[ans]
         },
-        text: labels[ans]
+        text: labels[ans],
+	xaxis: {
+	  text: 'OTU ID'
+	}
       }];
+            
+      let layout1 = {
+        xaxis: {
+	  title: {
+      	    text: 'OTU ID'
+	   }
+        }
+      };
 
-      Plotly.newPlot("bubble", trace2);
+      Plotly.newPlot("bubble", trace2, layout1);
     };
     bubbleChart();
 
-    //Function for Bubble chart
+    //Function for Bar chart
     function barChart() {
       // Organising data for bar chart
       slicedSample = sample_values[ans].slice(0, 10);
@@ -131,7 +142,15 @@ d3.json(url).then(function(data) {
       text: labels[ans]
     }];
 
-    Plotly.newPlot("bubble", trace2);
+    let layout1 = {
+      xaxis: {
+	title: {
+      	  text: 'OTU ID'
+	 }
+      }
+    }; 
+
+    Plotly.newPlot("bubble", trace2, layout1);
 
     // Bar chart
     slicedSample = sample_values[ans].slice(0, 10);
